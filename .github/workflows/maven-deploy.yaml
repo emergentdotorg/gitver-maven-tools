@@ -7,53 +7,75 @@ on:
   #pull_request:
   #  types:
   #    - closed
+  #  branches:
+  #    - main
+  #    - master
   push:
-    tags:
-      - 'v*.*.*'
-    #branches:
-    #  - main
-    #  - master
+    branches:
+      - release-0.x
   workflow_dispatch:
 
 jobs:
   resolve-vars:
     outputs:
-      release_branch: ${{ steps.resolve_vars.outputs.release_branch }}
-      version: ${{ steps.resolve_vars.outputs.version }}
+      version: ${{ steps.resolve_version.outputs.version }}
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-tags: 'true'
 
-      - id: resolve_vars
-        # 1. Get the list of branches ref where this tag exists
-        # 2. Remove 'origin/' from that result
-        # 3. Put that string in output
-        # => We can now use function 'contains(list, item)''
+      - name: Resolve Tag
+        id: resolve_tag
         env:
-          GH_REF: ${{ github.ref }}
+          REVISION: ${{ inputs.revision }}
         # language="shell script"
         run: |
-          git fetch origin -t
-          raw_branch="$(git branch -r --contains ${GH_REF} 2>/dev/null | grep -v ' -> ' | cut -c3- )"
-          if [ $( echo "${raw_branch}" | grep -E '^origin/(main|master|release-.*)$' ) ]; then
-            RELEASE_BRANCH=true
-          else
-            RELEASE_BRANCH=false
-          fi
-          VERSION="${GH_REF#refs/tags/v}"
-          echo "GH_REF=${GH_REF}"
-          echo "raw_branch=${raw_branch}"
-          echo "RELEASE_BRANCH=${RELEASE_BRANCH}"
+          set +e
+          TAGNAME="$(git describe --exact-match --match 'v*' --tags HEAD 2>/dev/null)"
+          VERSION="${TAGNAME#v}"
+          echo "TAGNAME=${TAGNAME}"
           echo "VERSION=${VERSION}"
           printf '%s\n' \
-            "release_branch=${RELEASE_BRANCH}" \
+            "tagname=${TAGNAME}" \
+            "version=${VERSION}" \
+            >> $GITHUB_OUTPUT
+
+      - name: Create Tag
+        id: create_tag
+        if: ${{ steps.resolve_tag.outputs.version == '' }}
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ github.token }}
+          default_bump: 'patch'
+          default_prerelease_bump: 'patch'
+          release_branches: 'main,master,release.*'
+          append_to_pre_release_tag: ''
+          fetch_all_tags: 'true'
+
+      - name: Resolve Version
+        id: resolve_version
+        env:
+          CUR_VERSION: ${{ steps.resolve_tag.outputs.version }}
+          NEW_VERSION: ${{ steps.create_tag.outputs.new_version }}
+        # language="shell script"
+        run: |
+          if [ -n "${CUR_VERSION}" ]; then
+            VERSION="${CUR_VERSION}"
+          else
+            VERSION="${NEW_VERSION}"
+          fi
+          echo "VERSION=${VERSION}"
+          printf '%s\n' \
             "version=${VERSION}" \
             >> $GITHUB_OUTPUT
 
   invoke-deploy:
     needs: resolve-vars
     #if: ${{ github.event_name != 'pull_request' || github.event.pull_request.merged == true }}
-    if: ${{ needs.resolve-vars.outputs.release_branch == 'true' }}
+    if: ${{ needs.resolve-vars.outputs.version != '' }}
     permissions:
       contents: write
     uses: emergentdotorg/github-actions/.github/workflows/maven-deploy.yaml@v3
