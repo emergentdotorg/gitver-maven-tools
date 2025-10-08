@@ -24,6 +24,16 @@ if (!binding.hasVariable('basedir')) {
 @groovy.transform.Final
 File rootdir = ((File)binding.getVariable('basedir')).getAbsoluteFile()
 
+//@groovy.transform.Field
+//@groovy.transform.Final
+//org.apache.maven.it.Verifier verifier = new org.apache.maven.it.Verifier(rootdir.getPath(), true);
+//if (false) {
+//  verifier.displayStreamBuffers();
+//  verifier.executeGoal("verify")
+//  verifier.verifyTextInLog("Building")
+//  verifier.verifyErrorFreeLog()
+//}
+
 static String s(Object o) {
   return String.valueOf(o)
 }

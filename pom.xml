@@ -67,7 +67,7 @@
     <version.maven-compiler-plugin>3.14.0</version.maven-compiler-plugin>
     <version.maven-enforcer-plugin>3.5.0</version.maven-enforcer-plugin>
     <version.maven-gpg-plugin>3.2.7</version.maven-gpg-plugin>
-    <version.maven-invoker-plugin>3.9.0</version.maven-invoker-plugin>
+    <version.maven-invoker-plugin>3.9.1</version.maven-invoker-plugin>
     <version.maven-jar-plugin>3.4.2</version.maven-jar-plugin>
     <version.maven-javadoc-plugin>3.11.2</version.maven-javadoc-plugin>
     <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>
@@ -225,6 +225,9 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>flatten-maven-plugin</artifactId>
           <version>${version.flatten-maven-plugin}</version>
+          <configuration>
+            <skipFlatten>true</skipFlatten>
+          </configuration>
           <executions>
             <execution>
               <id>flatten-clean</id>
@@ -240,6 +243,7 @@
               </goals>
               <phase>process-resources</phase>
               <configuration>
+                <updatePomFile>true</updatePomFile>
                 <flattenMode>resolveCiFriendliesOnly</flattenMode>
               </configuration>
             </execution>
@@ -324,16 +328,19 @@
           </execution>
         </executions>
       </plugin>
+      <!--
+      If there was a parent, re-enable this
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>flatten-maven-plugin</artifactId>
         <inherited>false</inherited>
+        <configuration>
+          <skipFlatten>false</skipFlatten>
+        </configuration>
         <executions>
           <execution>
             <id>flatten-flatten</id>
             <configuration>
-              <updatePomFile>true</updatePomFile>
-              <flattenMode>resolveCiFriendliesOnly</flattenMode>
               <pomElements>
                 <parent>flatten</parent>
               </pomElements>
@@ -341,6 +348,7 @@
           </execution>
         </executions>
       </plugin>
+      -->
     </plugins>
   </build>
 
@@ -590,17 +598,16 @@
         </file>
       </activation>
       <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.codehaus.mojo</groupId>
-              <artifactId>flatten-maven-plugin</artifactId>
-              <configuration>
-                <updatePomFile>true</updatePomFile>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>flatten-maven-plugin</artifactId>
+            <inherited>true</inherited>
+            <configuration>
+              <skipFlatten>false</skipFlatten>
+            </configuration>
+          </plugin>
+        </plugins>
       </build>
     </profile>
 
@@ -613,17 +620,16 @@
         </property>
       </activation>
       <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.codehaus.mojo</groupId>
-              <artifactId>flatten-maven-plugin</artifactId>
-              <configuration>
-                <updatePomFile>true</updatePomFile>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>flatten-maven-plugin</artifactId>
+            <inherited>true</inherited>
+            <configuration>
+              <skipFlatten>false</skipFlatten>
+            </configuration>
+          </plugin>
+        </plugins>
       </build>
     </profile>
 

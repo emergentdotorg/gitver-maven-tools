@@ -107,39 +107,8 @@
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <configuration>
-              <environmentVariables>
-                <HOME>${project.build.testOutputDirectory}/home</HOME>
-              </environmentVariables>
-              <systemPropertyVariables>
-                <user.home>${project.build.testOutputDirectory}/home</user.home>
-                <maven.repo.local>${project.build.directory}/local-failsafe-repo</maven.repo.local>
-              </systemPropertyVariables>
-            </configuration>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>integration-test</goal>
-                  <goal>verify</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-invoker-plugin</artifactId>
             <executions>
-              <execution>
-                <id>failsafe-prep</id>
-                <goals>
-                  <goal>install</goal>
-                </goals>
-                <configuration>
-                  <scope>test</scope>
-                  <localRepositoryPath>${project.build.directory}/local-failsafe-repo</localRepositoryPath>
-                </configuration>
-              </execution>
               <execution>
                 <id>integration-test</id>
                 <goals>
@@ -158,18 +127,20 @@
                   <scope>runtime</scope>
                   <cloneClean>true</cloneClean>
                   <showErrors>true</showErrors>
-                  <streamLogsOnFailures>true</streamLogsOnFailures>
+                  <parallelThreads>1C</parallelThreads>
                   <timeoutInSeconds>60</timeoutInSeconds>
+                  <addTestClassPath>true</addTestClassPath>
                   <preBuildHookScript>setup</preBuildHookScript>
                   <postBuildHookScript>verify</postBuildHookScript>
+                  <streamLogsOnFailures>true</streamLogsOnFailures>
                   <settingsFile>src/it/settings.xml</settingsFile>
                   <cloneProjectsTo>${project.build.directory}/its</cloneProjectsTo>
-                  <localRepositoryPath>${project.build.directory}/local-invoker-home/repo</localRepositoryPath>
+                  <localRepositoryPath>${project.build.directory}/local-invoker-repo</localRepositoryPath>
                   <environmentVariables>
-                    <HOME>${project.build.directory}/local-invoker-home</HOME>
+                    <HOME>${project.build.directory}/its/tools</HOME>
                   </environmentVariables>
                   <properties>
-                    <user.home>${project.build.directory}/local-invoker-home</user.home>
+                    <user.home>${project.build.directory}/its/tools</user.home>
                   </properties>
                   <extraArtifacts>
                     <artifact>junit:junit:3.8.1</artifact>

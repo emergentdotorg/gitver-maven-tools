@@ -16,7 +16,7 @@
       <repositories>
         <repository>
           <id>local.central</id>
-          <url>${localRepositoryUrl}</url>
+          <url>@localRepositoryUrl@</url>
           <releases>
             <enabled>true</enabled>
             <checksumPolicy>ignore</checksumPolicy>
@@ -30,7 +30,7 @@
       <pluginRepositories>
         <pluginRepository>
           <id>local.central</id>
-          <url>${localRepositoryUrl}</url>
+          <url>@localRepositoryUrl@</url>
           <releases>
             <enabled>true</enabled>
             <checksumPolicy>ignore</checksumPolicy>
@@ -45,7 +45,7 @@
   </profiles>
 
   <activeProfiles>
-    <!--<activeProfile>it-repo</activeProfile>-->
+    <activeProfile>it-repo</activeProfile>
   </activeProfiles>
 
 </settings>

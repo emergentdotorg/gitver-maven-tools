@@ -10,9 +10,9 @@ on:
   #  branches:
   #    - main
   #    - master
-  push:
-    branches:
-      - release-0.x
+  #push:
+  #  branches:
+  #    - release-0.x
   workflow_dispatch:
 
 jobs:
@@ -33,6 +33,7 @@ jobs:
           REVISION: ${{ inputs.revision }}
         # language="shell script"
         run: |
+          #TODO fail if not on a release branch
           set +e
           TAGNAME="$(git describe --exact-match --match 'v*' --tags HEAD 2>/dev/null)"
           VERSION="${TAGNAME#v}"
