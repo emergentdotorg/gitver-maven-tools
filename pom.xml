@@ -43,6 +43,7 @@
   <modules>
     <module>gittle-core</module>
     <module>gittle-maven-extension</module>
+    <module>gittle-maven-plugin</module>
   </modules>
 
   <scm>
@@ -328,19 +329,27 @@
   </dependencies>
 
   <profiles>
+    <!--
     <profile>
       <id>plugin-module</id>
       <modules>
         <module>gittle-maven-plugin</module>
       </modules>
     </profile>
+    -->
 
     <profile>
       <id>gittle-disabled</id>
       <activation>
+        <!--
         <file>
           <missing>${maven.multiModuleProjectDirectory}/.mvn/extensions.xml</missing>
         </file>
+        -->
+        <property>
+          <name>gittle.extension.disabled</name>
+          <value>true</value>
+        </property>
       </activation>
       <build>
         <plugins>
