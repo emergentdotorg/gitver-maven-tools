@@ -3,6 +3,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>org.emergent.parent</groupId>
+    <artifactId>maven-parent</artifactId>
+    <version>0.0.2</version>
+  </parent>
+
   <groupId>org.emergent.gittle</groupId>
   <artifactId>gittle-parent</artifactId>
   <version>${revision}</version>
@@ -57,25 +63,9 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <revision>Z-LATEST-SNAPSHOT</revision>
-    <surefire.version>3.5.3</surefire.version>
-    <version.central-publishing-maven-plugin>0.8.0</version.central-publishing-maven-plugin>
-    <version.exec-maven-plugin>3.5.1</version.exec-maven-plugin>
-    <version.flatten-maven-plugin>1.7.3</version.flatten-maven-plugin>
-    <version.license-maven-plugin>2.7.0</version.license-maven-plugin>
     <version.lombok>1.18.38</version.lombok>
     <version.maven>3.9.9</version.maven>
-    <version.maven-compiler-plugin>3.14.0</version.maven-compiler-plugin>
-    <version.maven-enforcer-plugin>3.5.0</version.maven-enforcer-plugin>
-    <version.maven-gpg-plugin>3.2.7</version.maven-gpg-plugin>
-    <version.maven-invoker-plugin>3.9.1</version.maven-invoker-plugin>
-    <version.maven-jar-plugin>3.4.2</version.maven-jar-plugin>
-    <version.maven-javadoc-plugin>3.11.2</version.maven-javadoc-plugin>
-    <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>
-    <version.maven-shade-plugin>3.6.0</version.maven-shade-plugin>
-    <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
-    <version.maven-surefire>${surefire.version}</version.maven-surefire>
     <version.plugintools>3.15.1</version.plugintools>
-    <version.sortpom-maven-plugin>4.0.0</version.sortpom-maven-plugin>
   </properties>
 
   <build>
@@ -97,64 +87,15 @@
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>com.github.ekryd.sortpom</groupId>
-          <artifactId>sortpom-maven-plugin</artifactId>
-          <version>${version.sortpom-maven-plugin}</version>
-          <configuration>
-            <createBackupFile>false</createBackupFile>
-            <expandEmptyElements>false</expandEmptyElements>
-            <lineSeparator>\n</lineSeparator>
-            <sortDependencies>scope,groupId,artifactId</sortDependencies>
-            <sortDependencyExclusions>groupId,artifactId</sortDependencyExclusions>
-            <sortDependencyManagement>scope,groupId,artifactId</sortDependencyManagement>
-            <sortExecutions>true</sortExecutions>
-            <sortModules>true</sortModules>
-            <sortOrderFile>${maven.multiModuleProjectDirectory}/emergent-sortpom-order.xml</sortOrderFile>
-            <sortPlugins>groupId,artifactId</sortPlugins>
-            <sortProperties>true</sortProperties>
-            <spaceBeforeCloseEmptyElement>false</spaceBeforeCloseEmptyElement>
-          </configuration>
-        </plugin>
-        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>${version.maven-compiler-plugin}</version>
           <configuration>
             <release>17</release>
           </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-enforcer-plugin</artifactId>
-          <version>${version.maven-enforcer-plugin}</version>
-          <executions>
-            <execution>
-              <id>enforce-requireUpperBoundDeps</id>
-              <configuration>
-                <skip>true</skip>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${version.maven-surefire}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-gpg-plugin</artifactId>
-          <version>${version.maven-gpg-plugin}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-invoker-plugin</artifactId>
-          <version>${version.maven-invoker-plugin}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>${version.maven-jar-plugin}</version>
           <configuration>
             <archive>
               <manifest>
@@ -165,13 +106,7 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>${version.maven-javadoc-plugin}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>${version.maven-resources-plugin}</version>
           <configuration>
             <delimiters>
               <delimiter>@</delimiter>
@@ -182,10 +117,10 @@
           <executions>
             <execution>
               <id>copy-license</id>
-              <phase>process-resources</phase>
               <goals>
                 <goal>copy-resources</goal>
               </goals>
+              <phase>process-resources</phase>
               <configuration>
                 <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
                 <resources>
@@ -202,54 +137,6 @@
           </executions>
         </plugin>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-shade-plugin</artifactId>
-          <version>${version.maven-shade-plugin}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-source-plugin</artifactId>
-          <version>${version.maven-source-plugin}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>${version.maven-surefire}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>exec-maven-plugin</artifactId>
-          <version>${version.exec-maven-plugin}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>flatten-maven-plugin</artifactId>
-          <version>${version.flatten-maven-plugin}</version>
-          <configuration>
-            <skipFlatten>true</skipFlatten>
-          </configuration>
-          <executions>
-            <execution>
-              <id>flatten-clean</id>
-              <goals>
-                <goal>clean</goal>
-              </goals>
-              <phase>clean</phase>
-            </execution>
-            <execution>
-              <id>flatten-flatten</id>
-              <goals>
-                <goal>flatten</goal>
-              </goals>
-              <phase>process-resources</phase>
-              <configuration>
-                <updatePomFile>true</updatePomFile>
-                <flattenMode>resolveCiFriendliesOnly</flattenMode>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>${version.license-maven-plugin}</version>
@@ -260,96 +147,8 @@
             <keepBackup>false</keepBackup>
           </configuration>
         </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>versions-maven-plugin</artifactId>
-          <version>${version.versions-maven-plugin}</version>
-          <configuration>
-            <generateBackupPoms>false</generateBackupPoms>
-            <processAllModules>true</processAllModules>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.sonatype.central</groupId>
-          <artifactId>central-publishing-maven-plugin</artifactId>
-          <version>${version.central-publishing-maven-plugin}</version>
-        </plugin>
       </plugins>
     </pluginManagement>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>${version.maven-source-plugin}</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>exec</id>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>java</executable>
-              <classpathScope>provided</classpathScope>
-              <arguments>
-                <argument>-cp</argument>
-                <classpath/>
-                <argument>org.apache.maven.artifact.versioning.ComparableVersion</argument>
-              </arguments>
-              <environmentVariables>
-                <LANG>en_US</LANG>
-              </environmentVariables>
-            </configuration>
-          </execution>
-          <execution>
-            <id>java</id>
-            <goals>
-              <goal>java</goal>
-            </goals>
-            <configuration>
-              <mainClass>org.apache.maven.artifact.versioning.ComparableVersion</mainClass>
-              <classpathScope>provided</classpathScope>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <!--
-      If there was a parent, re-enable this
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-        <inherited>false</inherited>
-        <configuration>
-          <skipFlatten>false</skipFlatten>
-        </configuration>
-        <executions>
-          <execution>
-            <id>flatten-flatten</id>
-            <configuration>
-              <pomElements>
-                <parent>flatten</parent>
-              </pomElements>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      -->
-    </plugins>
   </build>
 
   <dependencyManagement>
@@ -456,7 +255,7 @@
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
-        <version>3.2.1</version>
+        <version>3.5.1</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jgit</groupId>
@@ -487,6 +286,11 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-simple</artifactId>
         <version>1.7.36</version>
+      </dependency>
+      <dependency>
+        <groupId>org.twdata.maven</groupId>
+        <artifactId>mojo-executor</artifactId>
+        <version>2.4.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -525,73 +329,14 @@
 
   <profiles>
     <profile>
-      <id>deploy</id>
-      <activation>
-        <property>
-          <name>env.DEPLOY_SERVER</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-                <phase>verify</phase>
-                <configuration>
-                  <signer>bc</signer>
-                  <keyEnvName>MAVEN_GPG_KEY</keyEnvName>
-                  <passphraseEnvName>MAVEN_GPG_PASSPHRASE</passphraseEnvName>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-                <configuration>
-                  <doclint>all,-missing</doclint>
-                  <notimestamp>true</notimestamp>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
+      <id>plugin-module</id>
+      <modules>
+        <module>gittle-maven-plugin</module>
+      </modules>
     </profile>
 
     <profile>
-      <id>central-distmgt</id>
-      <activation>
-        <property>
-          <name>env.DEPLOY_SERVER</name>
-          <value>central</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.sonatype.central</groupId>
-            <artifactId>central-publishing-maven-plugin</artifactId>
-            <extensions>true</extensions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>sans-extensions</id>
+      <id>gittle-disabled</id>
       <activation>
         <file>
           <missing>${maven.multiModuleProjectDirectory}/.mvn/extensions.xml</missing>
@@ -602,42 +347,29 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>flatten-maven-plugin</artifactId>
-            <inherited>true</inherited>
-            <configuration>
-              <skipFlatten>false</skipFlatten>
-            </configuration>
+            <executions>
+              <execution>
+                <id>clean</id>
+                <goals>
+                  <goal>clean</goal>
+                </goals>
+                <phase>clean</phase>
+              </execution>
+              <execution>
+                <id>flatten</id>
+                <goals>
+                  <goal>flatten</goal>
+                </goals>
+                <phase>process-resources</phase>
+                <configuration>
+                  <updatePomFile>true</updatePomFile>
+                  <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>
-    </profile>
-
-    <profile>
-      <id>gittle-disabled</id>
-      <activation>
-        <property>
-          <name>gittle.extension.disabled</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>flatten-maven-plugin</artifactId>
-            <inherited>true</inherited>
-            <configuration>
-              <skipFlatten>false</skipFlatten>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>plugin-module</id>
-      <modules>
-        <module>gittle-maven-plugin</module>
-      </modules>
     </profile>
 
     <profile>

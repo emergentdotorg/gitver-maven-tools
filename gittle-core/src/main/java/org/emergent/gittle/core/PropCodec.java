@@ -32,235 +32,235 @@ import static org.emergent.gittle.core.gson.GsonUtil.STR_MAP_TT;
 @Log
 public class PropCodec {
 
-    private static final Map<Type, Map<String, String>> defCache = new ConcurrentHashMap<>();
-    private static final Map<Class<?>, String> prefixMap = Map.of(
-            Config.class, "gittle.",
-            Resolved.class, "gittle.resolved."
-    );
+  private static final Map<Type, Map<String, String>> defCache = new ConcurrentHashMap<>();
+  private static final Map<Class<?>, String> prefixMap = Map.of(
+      Config.class, "gittle.",
+      Resolved.class, "gittle.resolved."
+  );
 
-    private static final Gson rawGson = GsonUtil.getGson();
+  private static final Gson rawGson = GsonUtil.getGson();
 
-    public static Map<String, String> toProperties(Map<String, ?> src) {
-        return toFlatMap(src, OBJ_MAP_TT.getType());
+  public static Map<String, String> toProperties(Map<String, ?> src) {
+    return toFlatMap(src, OBJ_MAP_TT.getType());
+  }
+
+  public static <V> V fromProperties(Map<String, String> in, Type type) {
+    JsonElement json = toJsonTree(in);
+    return fromJsonTree(json, type);
+  }
+
+  public static <T extends Codable> Map<String, String> codableToMap(Codable src, Class<? extends T> clazz) {
+    Map<String, String> map = toFlatMap(src, clazz);
+
+    getDefaultProperties(clazz).forEach((k, v) -> {
+      if (v != null && v.equals(map.get(k))) {
+        map.remove(k);
+      }
+    });
+
+    Map<String, String> rekeyed = getPrefix(clazz).map(p -> Util.appendPrefix(p, map)).orElse(map);
+
+    return new TreeMap<>(rekeyed);
+  }
+
+  private static Optional<String> getPrefix(Class<?> clazz) {
+    return prefixMap.entrySet().stream()
+        .filter(e -> e.getKey().isAssignableFrom(clazz))
+        .sorted(Comparator.comparing(e -> calculateDistance(e.getKey(), clazz)))
+        .map(Map.Entry::getValue)
+        .findFirst();
+  }
+
+  /**
+   * Calculates the distance (number of inheritance levels) from the
+   * implementation class to the base class.
+   *
+   * @param baseClass The base class to find in the hierarchy.
+   * @param implClass The implementation class.
+   * @return The distance as an integer, or -1 if the implClass
+   * does not inherit from the baseClass.
+   */
+  public static int calculateDistance(Class<?> baseClass, Class<?> implClass) {
+    // Handle invalid inputs.
+    if (implClass == null || baseClass == null) {
+      throw new IllegalArgumentException("Input classes cannot be null.");
     }
 
-    public static <V> V fromProperties(Map<String, String> in, Type type) {
-        JsonElement json = toJsonTree(in);
-        return fromJsonTree(json, type);
+    // Check if the implClass is the baseClass itself.
+    if (Objects.equals(implClass, baseClass)) {
+      return 0;
     }
 
-    public static <T extends Codable> Map<String, String> codableToMap(Codable src, Class<? extends T> clazz) {
-        Map<String, String> map = toFlatMap(src, clazz);
+    int distance = 0;
+    Class<?> currentClass = implClass;
 
-        getDefaultProperties(clazz).forEach((k, v) -> {
-            if (v != null && v.equals(map.get(k))) {
-                map.remove(k);
-            }
-        });
-
-        Map<String, String> rekeyed = getPrefix(clazz).map(p -> Util.appendPrefix(p, map)).orElse(map);
-
-        return new TreeMap<>(rekeyed);
+    // Loop up the inheritance tree until a match is found or the top is reached.
+    while (currentClass != null && !Objects.equals(currentClass, baseClass)) {
+      currentClass = currentClass.getSuperclass();
+      distance++;
     }
 
-    private static Optional<String> getPrefix(Class<?> clazz) {
-        return prefixMap.entrySet().stream()
-                .filter(e -> e.getKey().isAssignableFrom(clazz))
-                .sorted(Comparator.comparing(e -> calculateDistance(e.getKey(), clazz)))
-                .map(Map.Entry::getValue)
-                .findFirst();
+    // If currentClass is null, the baseClass was not found in the hierarchy.
+    if (currentClass == null) {
+      return -1;
     }
 
-    /**
-     * Calculates the distance (number of inheritance levels) from the
-     * implementation class to the base class.
-     *
-     * @param baseClass The base class to find in the hierarchy.
-     * @param implClass The implementation class.
-     * @return The distance as an integer, or -1 if the implClass
-     * does not inherit from the baseClass.
-     */
-    public static int calculateDistance(Class<?> baseClass, Class<?> implClass) {
-        // Handle invalid inputs.
-        if (implClass == null || baseClass == null) {
-            throw new IllegalArgumentException("Input classes cannot be null.");
-        }
+    return distance;
+  }
 
-        // Check if the implClass is the baseClass itself.
-        if (Objects.equals(implClass, baseClass)) {
-            return 0;
-        }
+  private static Map<String, String> getDefaultProperties(Class<?> clazz) {
+    return defCache.computeIfAbsent(clazz, c -> {
+      try {
+        Optional<Method> initMethod = Arrays.stream(clazz.getMethods())
+            .filter(m -> "newInstance".equals(m.getName()))
+            .filter(m -> m.getParameterCount() == 0)
+            .filter(m -> Modifier.isPublic(m.getModifiers()))
+            .filter(m -> Modifier.isStatic(m.getModifiers()))
+            .findFirst();
 
-        int distance = 0;
-        Class<?> currentClass = implClass;
+        Object inst = initMethod.isPresent()
+            ? initMethod.get().invoke(null)
+            : clazz.getDeclaredConstructor().newInstance();
 
-        // Loop up the inheritance tree until a match is found or the top is reached.
-        while (currentClass != null && !Objects.equals(currentClass, baseClass)) {
-            currentClass = currentClass.getSuperclass();
-            distance++;
-        }
+        return toFlatMap(inst, clazz);
+      } catch (ReflectiveOperationException e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
 
-        // If currentClass is null, the baseClass was not found in the hierarchy.
-        if (currentClass == null) {
-            return -1;
-        }
+  public static Map<String, String> toFlatMap(Object src, Type type) {
+    JsonElement flattened = flatten(toJsonTree(src, type));
+    return rawGson.fromJson(flattened, STR_MAP_TT.getType());
+  }
 
-        return distance;
+  public static Map<String, Object> toMap(JsonElement json) {
+    return fromJsonTree(json, OBJ_MAP_TT.getType());
+  }
+
+  public static <V> V fromJsonTree(JsonElement json, Type type) {
+    if (hasFlattenedKeys(json)) {
+      json = rebuild(json);
+    }
+    return rawGson.fromJson(json, type);
+  }
+
+  public static JsonElement toJsonTree(Map<String, ?> in) {
+    return rawGson.toJsonTree(in, OBJ_MAP_TT.getType());
+  }
+
+  public static JsonElement toJsonTree(Object in, Type type) {
+    return rawGson.toJsonTree(in, type);
+  }
+
+  public static boolean hasFlattenedKeys(JsonElement json) {
+    if (json.isJsonObject()) {
+      JsonObject obj = json.getAsJsonObject();
+      return obj.keySet().stream().anyMatch(key -> key.contains("."));
+    }
+    return false;
+  }
+
+  public static boolean hasContainerValues(JsonElement json) {
+    if (json.isJsonNull() || json.isJsonPrimitive()) {
+      return false;
+    }
+    Collection<JsonElement> children = json.isJsonArray()
+        ? json.getAsJsonArray().asList()
+        : json.getAsJsonObject().asMap().values();
+    return children.stream().anyMatch(c -> c.isJsonArray() || c.isJsonObject());
+  }
+
+  public static JsonElement flatten(JsonElement src) {
+    if (src.isJsonArray()) return flattenValues(src.getAsJsonArray());
+    if (src.isJsonObject()) return flattenValues(src.getAsJsonObject());
+    return src;
+  }
+
+  public static JsonObject flattenValues(JsonArray src) {
+    return flattenValues(new JsonObject(), "", src);
+  }
+
+  public static JsonObject flattenValues(JsonObject src) {
+    if (!hasContainerValues(src)) return src;
+    return flattenValues(new JsonObject(), "", src);
+  }
+
+  private static JsonObject flattenValues(JsonObject dst, String key, JsonElement in) {
+    if (in.isJsonPrimitive()) {
+      dst.add(key, in);
+    }
+    String subkeyPrefix = key.isEmpty() ? "" : key + ".";
+    if (in.isJsonObject()) {
+      in.getAsJsonObject().asMap().forEach((k, v) -> flattenValues(dst, subkeyPrefix + k, v));
+    }
+    if (in.isJsonArray()) {
+      AtomicInteger ii = new AtomicInteger();
+      in.getAsJsonArray().forEach(v -> flattenValues(dst, subkeyPrefix + ii.incrementAndGet(), v));
+    }
+    return dst;
+  }
+
+  public static JsonElement rebuild(JsonElement in) {
+    return rebuild(in, true);
+  }
+
+  public static JsonElement rebuild(JsonElement in, boolean rebuildArrays) {
+    if (hasFlattenedKeys(in)) {
+      return rebuildValues(new JsonObject(), rebuildArrays, in.getAsJsonObject());
+    }
+    if (rebuildArrays && in.isJsonObject()) {
+      JsonObject src = in.getAsJsonObject();
+      Set<String> arrayKeys = getArrayRebuildKeys(src);
+      if (!arrayKeys.isEmpty()) {
+        return rebuildArrayValues(src.deepCopy(), arrayKeys);
+      }
+    }
+    return in;
+  }
+
+  private static JsonObject rebuildValues(JsonObject dst, boolean rebuildArrays, JsonObject src) {
+    src.keySet().stream().filter(key -> !key.contains(".")).forEach(key -> dst.add(key, src.get(key)));
+
+    Map<String, JsonObject> rebuiltObjs = new LinkedHashMap<>();
+    src.keySet().stream().filter(key -> key.contains(".")).forEach(key -> {
+      String groupKey = Util.substringBefore(key, ".");
+      JsonObject groupObj = rebuiltObjs.computeIfAbsent(groupKey, gk -> new JsonObject());
+      String valueKey = Util.substringAfter(key, ".");
+      groupObj.add(valueKey, rebuild(src.get(key), rebuildArrays));
+    });
+    rebuiltObjs.forEach(dst::add);
+
+    if (rebuildArrays) {
+      Set<String> arrayKeys = getArrayRebuildKeys(dst);
+      rebuildArrayValues(dst, arrayKeys);
     }
 
-    private static Map<String, String> getDefaultProperties(Class<?> clazz) {
-        return defCache.computeIfAbsent(clazz, c -> {
-            try {
-                Optional<Method> initMethod = Arrays.stream(clazz.getMethods())
-                        .filter(m -> "newInstance".equals(m.getName()))
-                        .filter(m -> m.getParameterCount() == 0)
-                        .filter(m -> Modifier.isPublic(m.getModifiers()))
-                        .filter(m -> Modifier.isStatic(m.getModifiers()))
-                        .findFirst();
+    return dst;
+  }
 
-                Object inst = initMethod.isPresent()
-                        ? initMethod.get().invoke(null)
-                        : clazz.getDeclaredConstructor().newInstance();
+  private static Set<String> getArrayRebuildKeys(JsonObject obj) {
+    // Everything has been migrated from 'in' to 'dst' so we're using 'dst' as both source
+    // and target for transforms after this point.  Note the toList() before forEach is to
+    // avoid a ConcurrentModificationException.
+    Set<String> arrayCandidateKeys = new LinkedHashSet<>();
+    obj.keySet().stream().filter(k -> obj.get(k).isJsonObject()).toList().forEach(groupKey -> {
+      JsonObject groupObj = obj.getAsJsonObject(groupKey);
+      List<String> orderedKeys = IntStream.range(1, groupObj.size() + 1).mapToObj(String::valueOf).toList();
+      if (orderedKeys.stream().allMatch(groupObj::has)) {
+        arrayCandidateKeys.add(groupKey);
+      }
+    });
+    return arrayCandidateKeys;
+  }
 
-                return toFlatMap(inst, clazz);
-            } catch (ReflectiveOperationException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    public static Map<String, String> toFlatMap(Object src, Type type) {
-        JsonElement flattened = flatten(toJsonTree(src, type));
-        return rawGson.fromJson(flattened, STR_MAP_TT.getType());
-    }
-
-    public static Map<String, Object> toMap(JsonElement json) {
-        return fromJsonTree(json, OBJ_MAP_TT.getType());
-    }
-
-    public static <V> V fromJsonTree(JsonElement json, Type type) {
-        if (hasFlattenedKeys(json)) {
-            json = rebuild(json);
-        }
-        return rawGson.fromJson(json, type);
-    }
-
-    public static JsonElement toJsonTree(Map<String, ?> in) {
-        return rawGson.toJsonTree(in, OBJ_MAP_TT.getType());
-    }
-
-    public static JsonElement toJsonTree(Object in, Type type) {
-        return rawGson.toJsonTree(in, type);
-    }
-
-    public static boolean hasFlattenedKeys(JsonElement json) {
-        if (json.isJsonObject()) {
-            JsonObject obj = json.getAsJsonObject();
-            return obj.keySet().stream().anyMatch(key -> key.contains("."));
-        }
-        return false;
-    }
-
-    public static boolean hasContainerValues(JsonElement json) {
-        if (json.isJsonNull() || json.isJsonPrimitive()) {
-            return false;
-        }
-        Collection<JsonElement> children = json.isJsonArray()
-                ? json.getAsJsonArray().asList()
-                : json.getAsJsonObject().asMap().values();
-        return children.stream().anyMatch(c -> c.isJsonArray() || c.isJsonObject());
-    }
-
-    public static JsonElement flatten(JsonElement src) {
-        if (src.isJsonArray()) return flattenValues(src.getAsJsonArray());
-        if (src.isJsonObject()) return flattenValues(src.getAsJsonObject());
-        return src;
-    }
-
-    public static JsonObject flattenValues(JsonArray src) {
-        return flattenValues(new JsonObject(), "", src);
-    }
-
-    public static JsonObject flattenValues(JsonObject src) {
-        if (!hasContainerValues(src)) return src;
-        return flattenValues(new JsonObject(), "", src);
-    }
-
-    private static JsonObject flattenValues(JsonObject dst, String key, JsonElement in) {
-        if (in.isJsonPrimitive()) {
-            dst.add(key, in);
-        }
-        String subkeyPrefix = key.isEmpty() ? "" : key + ".";
-        if (in.isJsonObject()) {
-            in.getAsJsonObject().asMap().forEach((k, v) -> flattenValues(dst, subkeyPrefix + k, v));
-        }
-        if (in.isJsonArray()) {
-            AtomicInteger ii = new AtomicInteger();
-            in.getAsJsonArray().forEach(v -> flattenValues(dst, subkeyPrefix + ii.incrementAndGet(), v));
-        }
-        return dst;
-    }
-
-    public static JsonElement rebuild(JsonElement in) {
-        return rebuild(in, true);
-    }
-
-    public static JsonElement rebuild(JsonElement in, boolean rebuildArrays) {
-        if (hasFlattenedKeys(in)) {
-            return rebuildValues(new JsonObject(), rebuildArrays, in.getAsJsonObject());
-        }
-        if (rebuildArrays && in.isJsonObject()) {
-            JsonObject src = in.getAsJsonObject();
-            Set<String> arrayKeys = getArrayRebuildKeys(src);
-            if (!arrayKeys.isEmpty()) {
-                return rebuildArrayValues(src.deepCopy(), arrayKeys);
-            }
-        }
-        return in;
-    }
-
-    private static JsonObject rebuildValues(JsonObject dst, boolean rebuildArrays, JsonObject src) {
-        src.keySet().stream().filter(key -> !key.contains(".")).forEach(key -> dst.add(key, src.get(key)));
-
-        Map<String, JsonObject> rebuiltObjs = new LinkedHashMap<>();
-        src.keySet().stream().filter(key -> key.contains(".")).forEach(key -> {
-            String groupKey = Util.substringBefore(key, ".");
-            JsonObject groupObj = rebuiltObjs.computeIfAbsent(groupKey, gk -> new JsonObject());
-            String valueKey = Util.substringAfter(key, ".");
-            groupObj.add(valueKey, rebuild(src.get(key), rebuildArrays));
-        });
-        rebuiltObjs.forEach(dst::add);
-
-        if (rebuildArrays) {
-            Set<String> arrayKeys = getArrayRebuildKeys(dst);
-            rebuildArrayValues(dst, arrayKeys);
-        }
-
-        return dst;
-    }
-
-    private static Set<String> getArrayRebuildKeys(JsonObject obj) {
-        // Everything has been migrated from 'in' to 'dst' so we're using 'dst' as both source
-        // and target for transforms after this point.  Note the toList() before forEach is to
-        // avoid a ConcurrentModificationException.
-        Set<String> arrayCandidateKeys = new LinkedHashSet<>();
-        obj.keySet().stream().filter(k -> obj.get(k).isJsonObject()).toList().forEach(groupKey -> {
-            JsonObject groupObj = obj.getAsJsonObject(groupKey);
-            List<String> orderedKeys = IntStream.range(1, groupObj.size() + 1).mapToObj(String::valueOf).toList();
-            if (orderedKeys.stream().allMatch(groupObj::has)) {
-                arrayCandidateKeys.add(groupKey);
-            }
-        });
-        return arrayCandidateKeys;
-    }
-
-    private static JsonObject rebuildArrayValues(JsonObject obj, Set<String> arrayCandidateKeys) {
-        arrayCandidateKeys.forEach(groupKey -> {
-            JsonObject groupObj = obj.getAsJsonObject(groupKey);
-            JsonArray arr = new JsonArray();
-            groupObj.keySet().stream().map(groupObj::get).forEachOrdered(arr::add);
-            obj.add(groupKey, arr);
-        });
-        return obj;
-    }
+  private static JsonObject rebuildArrayValues(JsonObject obj, Set<String> arrayCandidateKeys) {
+    arrayCandidateKeys.forEach(groupKey -> {
+      JsonObject groupObj = obj.getAsJsonObject(groupKey);
+      JsonArray arr = new JsonArray();
+      groupObj.keySet().stream().map(groupObj::get).forEachOrdered(arr::add);
+      obj.add(groupKey, arr);
+    });
+    return obj;
+  }
 }

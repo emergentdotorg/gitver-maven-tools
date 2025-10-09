@@ -7,13 +7,13 @@ import java.util.Map;
 
 record OverrideStrategy(@NonNull Config config) implements VersionStrategy {
 
-    @Override
-    public String version() {
-        return config().getNewVersion();
-    }
+  @Override
+  public String version() {
+    return config().getNewVersion();
+  }
 
-    @Override
-    public Map<String, String> asMap() {
-        return config().asMap();
-    }
+  @Override
+  public Map<String, String> asMap() {
+    return config().asMap();
+  }
 }

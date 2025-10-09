@@ -6,6 +6,6 @@
   <extension>
     <groupId>org.emergent.gittle</groupId>
     <artifactId>gittle-maven-extension</artifactId>
-    <version>Z-LATEST</version>
+    <version>0.0.2</version>
   </extension>
 </extensions>

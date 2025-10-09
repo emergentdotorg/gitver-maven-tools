@@ -22,7 +22,7 @@ if (!binding.hasVariable('basedir')) {
 
 @groovy.transform.Field
 @groovy.transform.Final
-File rootdir = ((File)binding.getVariable('basedir')).getAbsoluteFile()
+File rootdir = ((File) binding.getVariable('basedir')).getAbsoluteFile()
 
 //@groovy.transform.Field
 //@groovy.transform.Final
@@ -49,7 +49,7 @@ static ArrayList<String> exec(String[] env, File path, String execcmd, String[] 
   def proc = execcmd.execute(env, path)
   def inStream = proc.outputStream
 
-  subcmds.each {cm ->
+  subcmds.each { cm ->
     inStream.write((cm + '\n').getBytes(encoding))
     inStream.flush()
   }

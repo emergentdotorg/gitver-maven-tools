@@ -7,14 +7,14 @@ import java.util.Map;
 
 public interface VersionStrategy {
 
-    static VersionStrategy getInstance(Config config, File basePath) {
-        return StrategyFactory.getInstance(config, basePath);
-    }
+  static VersionStrategy getInstance(Config config, File basePath) {
+    return StrategyFactory.getInstance(config, basePath);
+  }
 
-    String version();
+  String version();
 
-    Config config();
+  Config config();
 
-    Map<String, String> asMap();
+  Map<String, String> asMap();
 
 }

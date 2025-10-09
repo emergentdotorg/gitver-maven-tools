@@ -12,15 +12,15 @@ import java.nio.file.Path;
 @Mojo(name = "set", defaultPhase = LifecyclePhase.INITIALIZE)
 public class SetMojo extends AbstractGittleMojo {
 
-    @Override
-    protected void execute0() throws MojoExecutionException, MojoFailureException {
-        Path basedir = mavenProject.getBasedir().toPath();
-        // Path targetdir = basedir.resolve(mavenProject.getBuild().getDirectory());
-        Path newPom = basedir.resolve(Util.GITTLE_POM_XML);
-        if (Files.exists(newPom)) {
-            mavenProject.setPomFile(newPom.toFile());
-        } else {
-            throw new MojoExecutionException("Cannot find " + newPom);
-        }
+  @Override
+  protected void execute0() throws MojoExecutionException, MojoFailureException {
+    Path basedir = mavenProject.getBasedir().toPath();
+    // Path targetdir = basedir.resolve(mavenProject.getBuild().getDirectory());
+    Path newPom = basedir.resolve(Util.GITTLE_POM_XML);
+    if (Files.exists(newPom)) {
+      mavenProject.setPomFile(newPom.toFile());
+    } else {
+      throw new MojoExecutionException("Cannot find " + newPom);
     }
+  }
 }

@@ -4,87 +4,27 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  #pull_request:
-  #  types:
-  #    - closed
-  #  branches:
-  #    - main
-  #    - master
-  #push:
-  #  branches:
-  #    - release-0.x
   workflow_dispatch:
+    inputs:
+      deploy-server:
+        description: 'Distribution server-id'
+        type: choice
+        default: central
+        options:
+          - central
+          - emergent-nexus
 
 jobs:
-  resolve-vars:
-    outputs:
-      version: ${{ steps.resolve_version.outputs.version }}
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-tags: 'true'
-
-      - name: Resolve Tag
-        id: resolve_tag
-        env:
-          REVISION: ${{ inputs.revision }}
-        # language="shell script"
-        run: |
-          #TODO fail if not on a release branch
-          set +e
-          TAGNAME="$(git describe --exact-match --match 'v*' --tags HEAD 2>/dev/null)"
-          VERSION="${TAGNAME#v}"
-          echo "TAGNAME=${TAGNAME}"
-          echo "VERSION=${VERSION}"
-          printf '%s\n' \
-            "tagname=${TAGNAME}" \
-            "version=${VERSION}" \
-            >> $GITHUB_OUTPUT
-
-      - name: Create Tag
-        id: create_tag
-        if: ${{ steps.resolve_tag.outputs.version == '' }}
-        uses: mathieudutour/github-tag-action@v6.2
-        with:
-          github_token: ${{ github.token }}
-          default_bump: 'patch'
-          default_prerelease_bump: 'patch'
-          release_branches: 'main,master,release.*'
-          append_to_pre_release_tag: ''
-          fetch_all_tags: 'true'
-
-      - name: Resolve Version
-        id: resolve_version
-        env:
-          CUR_VERSION: ${{ steps.resolve_tag.outputs.version }}
-          NEW_VERSION: ${{ steps.create_tag.outputs.new_version }}
-        # language="shell script"
-        run: |
-          if [ -n "${CUR_VERSION}" ]; then
-            VERSION="${CUR_VERSION}"
-          else
-            VERSION="${NEW_VERSION}"
-          fi
-          echo "VERSION=${VERSION}"
-          printf '%s\n' \
-            "version=${VERSION}" \
-            >> $GITHUB_OUTPUT
-
   invoke-deploy:
-    needs: resolve-vars
     #if: ${{ github.event_name != 'pull_request' || github.event.pull_request.merged == true }}
-    if: ${{ needs.resolve-vars.outputs.version != '' }}
     permissions:
       contents: write
     uses: emergentdotorg/github-actions/.github/workflows/maven-deploy.yaml@v3
     secrets: inherit
     with:
       java-version: 17
-      deploy-server: 'central'
-      revision: ${{ needs.resolve-vars.outputs.version }}
+      deploy-server: ${{ inputs.deploy-server }}
+      release-branches: 'main,master,release.*'
 
   process-results:
     runs-on: ubuntu-latest

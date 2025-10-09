@@ -32,7 +32,7 @@ public class CommitMojoTest extends AbstractMojoTest {
     File tempProject = setupTestProject();
     try (Git git = getMain(tempProject)) {
       addEmptyCommit(git);
-      CommitMojo commit = (CommitMojo)rule.lookupConfiguredMojo(tempProject, goal);
+      CommitMojo commit = (CommitMojo) rule.lookupConfiguredMojo(tempProject, goal);
       assertThat(commit).isNotNull();
       commit.execute();
       Iterable<RevCommit> commits = git.log().call();
@@ -48,7 +48,7 @@ public class CommitMojoTest extends AbstractMojoTest {
     File tempProject = setupTestProject();
     try (Git git = getMain(tempProject)) {
       addEmptyCommit(git);
-      CommitMojo commit = (CommitMojo)rule.lookupConfiguredMojo(tempProject, goal);
+      CommitMojo commit = (CommitMojo) rule.lookupConfiguredMojo(tempProject, goal);
       commit.setMessage("chore: releasing [%k]");
       assertThat(commit).isNotNull();
       commit.execute();
@@ -63,9 +63,9 @@ public class CommitMojoTest extends AbstractMojoTest {
     tempProject.mkdirs();
     Path testProject = Paths.get("src/test/resources/project-to-test/");
     Files.copy(
-      testProject.resolve("pom.xml"),
-      tempProject.toPath().resolve("pom.xml"),
-      StandardCopyOption.REPLACE_EXISTING);
+        testProject.resolve("pom.xml"),
+        tempProject.toPath().resolve("pom.xml"),
+        StandardCopyOption.REPLACE_EXISTING);
     assertThat(tempProject.list()).contains("pom.xml");
     return tempProject;
   }

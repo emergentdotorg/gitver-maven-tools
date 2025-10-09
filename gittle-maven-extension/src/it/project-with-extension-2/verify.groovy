@@ -1,8 +1,8 @@
 GroovyShell shell = new GroovyShell()
-shell.setVariable('basedir', (File)binding.getVariable('basedir'))
-def tools = shell.parse(new File((File)binding.getVariable('basedir'), '../tools/tools.groovy'))
+shell.setVariable('basedir', (File) binding.getVariable('basedir'))
+def tools = shell.parse(new File((File) binding.getVariable('basedir'), '../tools/tools.groovy'))
 
-static String s(Object o) {return String.valueOf(o)}
+static String s(Object o) { return String.valueOf(o) }
 
 def projectName = "devel-branch-test"
 def expectedVersionPrefix = '1.0.0-devel-1-SNAPSHOT+'

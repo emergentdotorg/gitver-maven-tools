@@ -24,48 +24,48 @@ import static org.emergent.gittle.core.Constants.VERSION_PATTERN_DEF;
 @lombok.Builder(setterPrefix = "set", toBuilder = true, builderClassName = "Builder")
 public class Config extends Codable.AbstractCodable {
 
-    private static final String PREFIX = "gittle.";
+  private static final String PREFIX = "gittle.";
 
-    @lombok.Builder.Default
-    String newVersion = null;
-    @NonNull
-    @lombok.Builder.Default
-    String releaseBranchRegex = RELEASE_BRANCH_REGEX_DEF;
-    @NonNull
-    @lombok.Builder.Default
-    String tagNameRegex = TAG_NAME_REGEX_DEF;
-    @NonNull
-    @lombok.Builder.Default
-    String versionPattern = VERSION_PATTERN_DEF;
+  @lombok.Builder.Default
+  String newVersion = null;
+  @NonNull
+  @lombok.Builder.Default
+  String releaseBranchRegex = RELEASE_BRANCH_REGEX_DEF;
+  @NonNull
+  @lombok.Builder.Default
+  String tagNameRegex = TAG_NAME_REGEX_DEF;
+  @NonNull
+  @lombok.Builder.Default
+  String versionPattern = VERSION_PATTERN_DEF;
 
-    public static Config from(Map<String, String> map) {
-        return toObj(map, PREFIX, Config.class);
+  public static Config from(Map<String, String> map) {
+    return toObj(map, PREFIX, Config.class);
+  }
+
+  public Map<String, String> asMap() {
+    return asMap(PREFIX);
+  }
+
+  public static class Builder {
+
+    @Tolerate
+    public Builder newVersion(String newVersion) {
+      return setNewVersion(newVersion);
     }
 
-    public Map<String, String> asMap() {
-        return asMap(PREFIX);
+    @Tolerate
+    public Builder releaseBranchRegex(String releaseBranchRegex) {
+      return setReleaseBranchRegex(releaseBranchRegex);
     }
 
-    public static class Builder {
-
-        @Tolerate
-        public Builder newVersion(String newVersion) {
-            return setNewVersion(newVersion);
-        }
-
-        @Tolerate
-        public Builder releaseBranchRegex(String releaseBranchRegex) {
-            return setReleaseBranchRegex(releaseBranchRegex);
-        }
-
-        @Tolerate
-        public Builder tagNameRegex(String tagNameRegex) {
-            return setTagNameRegex(tagNameRegex);
-        }
-
-        @Tolerate
-        public Builder versionPattern(String versionPattern) {
-            return setVersionPattern(versionPattern);
-        }
+    @Tolerate
+    public Builder tagNameRegex(String tagNameRegex) {
+      return setTagNameRegex(tagNameRegex);
     }
+
+    @Tolerate
+    public Builder versionPattern(String versionPattern) {
+      return setVersionPattern(versionPattern);
+    }
+  }
 }

@@ -14,32 +14,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AbstractGittleMojoTest {
 
-    AbstractGittleMojo testMojo = new AbstractGittleMojo() {
+  AbstractGittleMojo testMojo = new AbstractGittleMojo() {
 
-        {
-            mavenProject = new MavenProject();
-            mavenProject.setFile(new File("my/pom.xml"));
-        }
-
-        @Override
-        public void execute() throws MojoExecutionException, MojoFailureException {}
-    };
-
-    @Test
-    public void getVersionConfig() {
-        assertThat(testMojo).isNotNull().extracting("skip").isEqualTo(false);
-        assertThat(testMojo).isNotNull();
+    {
+      mavenProject = new MavenProject();
+      mavenProject.setFile(new File("my/pom.xml"));
     }
 
-    @Test
-    public void getVersionStrategy() {
-        VersionStrategy strategy = testMojo.getVersionStrategy();
-        assertThat(strategy).isNotNull().isInstanceOf(VersionStrategy.class);
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
     }
+  };
 
-    @Test
-    public void replaceVersionToken() {
-        Config conf = Config.builder().setNewVersion("1.2.3").build();
-        assertThat(testMojo.replaceTokens("v%v", StrategyFactory.getInstance(conf))).isEqualTo("v1.2.3");
-    }
+  @Test
+  public void getVersionConfig() {
+    assertThat(testMojo).isNotNull().extracting("skip").isEqualTo(false);
+    assertThat(testMojo).isNotNull();
+  }
+
+  @Test
+  public void getVersionStrategy() {
+    VersionStrategy strategy = testMojo.getVersionStrategy();
+    assertThat(strategy).isNotNull().isInstanceOf(VersionStrategy.class);
+  }
+
+  @Test
+  public void replaceVersionToken() {
+    Config conf = Config.builder().setNewVersion("1.2.3").build();
+    assertThat(testMojo.replaceTokens("v%v", StrategyFactory.getInstance(conf))).isEqualTo("v1.2.3");
+  }
 }

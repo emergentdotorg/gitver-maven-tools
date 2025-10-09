@@ -15,7 +15,7 @@ public class SetMojoTest extends AbstractMojoTest {
     File pom = new File("target/test-classes/project-to-test/");
     assertThat(pom).as("POM file").isNotNull().exists();
 
-    SetMojo set = (SetMojo)rule.lookupConfiguredMojo(pom, "set");
+    SetMojo set = (SetMojo) rule.lookupConfiguredMojo(pom, "set");
     assertThat(set).isNotNull();
   }
 }
