@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static org.emergent.gittle.core.Util.GITTLE_POM_XML;
 import static org.emergent.gittle.core.gson.GsonUtil.OBJ_MAP_TT;
 
 @Slf4j
@@ -149,6 +150,15 @@ class ExtensionUtil {
 
     if (properties.containsKey(REVISION)) {
       properties.setProperty(REVISION, ver.get());
+    }
+
+    Path originalPomFile = model.getPomFile().toPath().toAbsolutePath();
+    Path gittlePomFile = originalPomFile.resolveSibling(GITTLE_POM_XML);
+    try {
+      // Now write the updated model out to a file so we can point the project to it.
+      ExtensionUtil.writeModelToPom(model, gittlePomFile);
+    } catch (Exception e) {
+      log.error("Failed creating new gittle pom at {}", gittlePomFile, e);
     }
 
     return modified.get();
